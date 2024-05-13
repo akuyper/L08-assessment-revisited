@@ -1,0 +1,242 @@
+---
+title: "L08 Assessment Revisited"
+subtitle: "Data Science 3 with R (STAT 301-3)"
+author: "YOUR NAME"
+pagetitle: "L08 YOUR NAME"
+date: today
+
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    embed-resources: true
+    code-fold: false
+    link-external-newwindow: true
+
+execute:
+  warning: false
+  
+from: markdown+emoji
+reference-location: margin
+citation-location: margin
+---
+
+::: {.callout-tip icon=false}
+
+## Github Repo Link
+
+To link to your github **repo**sitory, appropriately edit the example link below. Meaning replace `https://your-github-repo-url` with your github repo url. Suggest verifying the link works before submitting.
+
+[https://your-github-repo-url](https://your-github-repo-url)
+
+:::
+
+## Overview
+
+The main goal of this lab is to have students think more about performance metrics, especially those used for classification.
+
+## Exercises
+
+### Exercise 1
+
+When considering classification metric it is important to understand the 4 essential terms below. Provide a definition for each:
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+- **True positives (TP):**
+
+- **True negatives (TN):**
+
+- **False positives (FP):**
+
+- **False negatives (FN):**
+
+:::
+
+While the general definitions are useful it is vital to be able to interpret each in the context of a problem. 
+
+Suppose we are attempting to classify an email as spam or not spam. We consider the prediction of spam to be a success or positive condition. 
+
+Define each each of the terms and describe the consequence of each (what happens to the email) in the context of this problem:
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+- **True positives (TP):**
+
+- **True negatives (TN):**
+
+- **False positives (FP):**
+
+- **False negatives (FN):**
+
+:::
+
+### Exercise 2
+
+Using the email example again, suppose we are attempting to classify an email as spam or not spam. We consider the prediction of spam to be a success or positive condition.
+
+Describe each of the metrics in context of our example and indicate how to use the metric (meaning is a lower or higher value better):
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+- **Accuracy:**
+
+- **Precision:**
+
+- **Recall:**
+
+- **Sensitivity:**
+
+- **Specificity:**
+
+:::
+
+### Exercise 3
+
+Name one metric that you would use if you are trying to balance recall and precision. Also indicate how to read/use the metric to compare models.  
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+
+:::
+
+### Exercise 4
+
+Below is the basic code setup for tuning a nearest neighbor model. By default the accuracy and AUC performance metrics are calculated. Suppose that in addition to these two default performance metrics we wanted to also calculate precision, recall, sensitivity, specificity, and an F measure. Modify the script below so that all desired performance metrics are calculated during the tuning step. 
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+```{r}
+#| label: knn-tuning
+#| eval: false
+
+# Knn tuning ----
+
+# Load package(s) ----
+library(tidyverse)
+library(tidymodels)
+library(doMC)
+
+# register cores/threads for parallel processing
+num_cores <- parallel::detectCores(logical = TRUE)
+registerDoMC(cores = num_cores - 1)
+
+# Handle conflicts
+tidymodels_prefer()
+
+# load required objects ----
+load("data_splits/data_folds.rda")
+load("recipes/basic_recipe.rda")
+
+# model specification ----
+knn_spec <- nearest_neighbor(
+  neighbors = tune()
+  ) |>
+  set_mode("classification") |> 
+  set_engine("kknn")
+
+# workflow ----
+knn_wflow <- 
+  workflow() |>
+  add_model(knn_spec) |>
+  add_recipe(basic_recipe)
+
+# # check tuning parameters
+# hardhat::extract_parameter_set_dials(knn_spec)
+
+# set-up tuning grid ----
+knn_params <- hardhat::extract_parameter_set_dials(knn_spec) |>
+  update(neighbors = neighbors(range = c(1,40)))
+
+# define grid
+knn_grid <- grid_regular(knn_params, levels = 15)
+
+# Tuning/fitting ----
+# seed
+set.seed(2468)
+knn_tune <- 
+  knn_wflow |>
+  tune_grid(
+    resamples = data_folds,
+    grid = knn_grid,
+    control = control_grid(save_workflow = TRUE)
+  )
+
+# Write out results ----
+save(knn_tune, file = "results/knn_tune.rda")
+```
+
+:::
+
+There is some redundancy in the set of performance metrics we are using. What is it?
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+:::
+
+### Exercise 5
+
+When conducting regression ML probelms we have used root mean squared error and R squared. In a few cases we made use of mean absolute error. 
+
+Name at least 2 other regression performance metrics and their functions in our `tidymodels` framework. Provide a description of the metric and how to use it to understand a model's performance. 
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+:::
+
+## Challenges
+
+::: {.callout-important}
+
+Not required, but hope you try.
+
+:::
+
+The [`probably` package](https://probably.tidymodels.org/index.html) provides tools to to explore and assess fitted models. Calibrating the threshold for binary classification is one particularly useful tool. Maybe using 0.5 to determining answering positive or negative (heads/tails) isn't actually the best decision threshold. `probably` provides tools to help us explore that and much more. 
+
+
+### Challenge 1
+
+Read and recreate the work in the [Where does probably fit in?](https://probably.tidymodels.org/articles/where-to-use.html) vignette. We encourage you to add notes and comments as you work through the steps, especially ones that help you build understanding.
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+:::
+
+
+### Challenge 2
+
+Read and recreate the work in the [Equivocal zones](https://probably.tidymodels.org/articles/equivocal-zones.html) vignette. We encourage you to add notes and comments as you work through the steps, especially ones that help you build understanding.
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+:::
+
+### Challenge 3
+
+Read and recreate the work in [An introduction to calibration with tidymodels](https://tidymodels.org/learn/models/calibration/) post found in the learning section of the tidymodels' website. We encourage you to add notes and comments as you work through the steps, especially ones that help you build understanding.
+
+::: {.callout-tip icon=false}
+
+## Solution
+
+:::
