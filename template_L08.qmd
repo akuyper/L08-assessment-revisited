@@ -7,6 +7,7 @@ date: today
 
 format:
   html:
+    theme: cosmo
     toc: true
     toc-depth: 4
     toc-location: left
@@ -16,11 +17,12 @@ format:
 
 execute:
   warning: false
-  
+
 from: markdown+emoji
 reference-location: margin
-citation-location: margin
+citation-location: margin 
 ---
+
 
 ::: {.callout-tip icon=false}
 
@@ -189,7 +191,7 @@ There is some redundancy in the set of performance metrics we are using. What is
 
 ### Exercise 5
 
-When conducting regression ML probelms we have used root mean squared error and R squared. In a few cases we made use of mean absolute error. 
+When conducting regression ML problems we have used root mean squared error and R squared. In a few cases we made use of mean absolute error. 
 
 Name at least 2 other regression performance metrics and their functions in our `tidymodels` framework. Provide a description of the metric and how to use it to understand a model's performance. 
 
